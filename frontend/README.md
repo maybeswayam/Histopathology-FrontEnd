@@ -1,364 +1,440 @@
-# HistoAI - Cancer Detection System
+# HistoAI Frontend
 
-HistoAI is an AI-powered histopathology cancer detection system that helps medical professionals analyze microscopic images for cancer detection using Google's Gemini AI.
+## Overview
 
-## Table of Contents
-- [Tech Stack](#tech-stack)
-- [Features](#features)
-- [Prerequisites](#prerequisites)
-- [Quick Start](#quick-start)
-- [Project Structure](#project-structure)
-- [Configuration](#configuration)
-- [Authentication](#authentication)
-- [AI Integration](#ai-integration)
-- [Components](#components)
-- [Development Commands](#development-commands)
-- [Deployment](#deployment)
+The frontend is a Next.js 14 application that provides the browser-facing product for HistoAI. It owns:
+
+- landing and entry routes
+- Supabase authentication flows
+- protected dashboard and analysis pages
+- image upload and prediction orchestration
+- rendering classification results and Grad-CAM heatmaps
+- saved analysis history retrieval
+- a Gemini-backed assistant panel
+
+This layer is not just presentation. It is also the orchestration boundary between the browser, Supabase, the inference backend, and Gemini.
+
+For a module-level map, see [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 ## Tech Stack
 
-### Frontend
-- **Framework**: Next.js 14 with App Router
-- **Language**: TypeScript
-- **UI Framework**: 
-  - Tailwind CSS for styling
-  - shadcn/ui components (based on Radix UI)
-- **State Management**: React Hooks
-- **Authentication**: Supabase Auth
-- **Theme**: next-themes for dark/light mode
-- **Icons**: Lucide React
+### Core platform
 
-### AI & Backend Integration
-- **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth
-- **File Storage**: Client-side processing with base64 encoding
+- Next.js `14.2.25`
+- React `18.3.1`
+- React DOM `18.3.1`
+- TypeScript `^5`
 
-## Features
+### Styling and UI
 
-- 🔐 **Authentication System** - Secure signup/login with Supabase
-- 🖼️ **Image Upload & Analysis** - Drag-and-drop histopathology image analysis
-- 🤖 **AI-Powered Detection** - Google Gemini Pro Vision for cancer detection
-- 📊 **Results Dashboard** - View analysis history and detailed results
-- 📱 **Responsive Design** - Works seamlessly on desktop and mobile
-- 📈 **Analysis History** - Track and review previous analyses
-- 🔍 **Detailed Explanations** - AI provides reasoning for its predictions
+- Tailwind CSS `^4.1.9`
+- `@tailwindcss/postcss` `^4.1.9`
+- `tw-animate-css` `1.3.3`
+- `tailwind-merge` `^2.5.5`
+- `tailwindcss-animate` `^1.0.7`
+- `class-variance-authority` `^0.7.1`
+- `clsx` `^2.1.1`
+- shadcn/ui components built on Radix primitives
 
-## Prerequisites
+### Integration and app libraries
 
-Before you begin, ensure you have the following installed:
+- `@supabase/ssr` `latest`
+- `@supabase/supabase-js` `latest`
+- `@google/generative-ai` `^0.24.1`
+- `axios` `latest`
+- `framer-motion` `^12.23.24`
+- `lucide-react` `^0.454.0`
+- `next-themes` `^0.4.6`
+- `geist` `^1.3.1`
+- `ogl` `^1.0.11`
+- `sonner` `^1.7.4`
+- `zod` `3.25.76`
+- `react-hook-form` `^7.60.0`
+- `@hookform/resolvers` `^3.10.0`
 
-- **Node.js** (version 18 or higher)
-- **pnpm** (recommended package manager)
-- **Git** (for version control)
+### Direct runtime dependencies declared in `package.json`
 
-You'll also need accounts for:
-- **Supabase** (for authentication and database)
-- **Google AI Studio** (for Gemini API access)
-
-## Quick Start
-
-### 1. Clone the Repository
-```bash
-git clone <repository-url>
-cd histopathology-ai
+```json
+"dependencies": {
+  "@google/generative-ai": "^0.24.1",
+  "@hookform/resolvers": "^3.10.0",
+  "@radix-ui/react-accordion": "1.2.2",
+  "@radix-ui/react-alert-dialog": "1.1.4",
+  "@radix-ui/react-aspect-ratio": "1.1.1",
+  "@radix-ui/react-avatar": "1.1.2",
+  "@radix-ui/react-checkbox": "1.1.3",
+  "@radix-ui/react-collapsible": "1.1.2",
+  "@radix-ui/react-context-menu": "2.2.4",
+  "@radix-ui/react-dialog": "1.1.4",
+  "@radix-ui/react-dropdown-menu": "2.1.4",
+  "@radix-ui/react-hover-card": "1.1.4",
+  "@radix-ui/react-label": "2.1.1",
+  "@radix-ui/react-menubar": "1.1.4",
+  "@radix-ui/react-navigation-menu": "1.2.3",
+  "@radix-ui/react-popover": "1.1.4",
+  "@radix-ui/react-progress": "1.1.1",
+  "@radix-ui/react-radio-group": "1.2.2",
+  "@radix-ui/react-scroll-area": "1.2.2",
+  "@radix-ui/react-select": "2.1.4",
+  "@radix-ui/react-separator": "1.1.1",
+  "@radix-ui/react-slider": "1.2.2",
+  "@radix-ui/react-slot": "1.1.1",
+  "@radix-ui/react-switch": "1.1.2",
+  "@radix-ui/react-tabs": "1.1.2",
+  "@radix-ui/react-toast": "1.2.4",
+  "@radix-ui/react-toggle": "1.1.1",
+  "@radix-ui/react-toggle-group": "1.1.1",
+  "@radix-ui/react-tooltip": "1.1.6",
+  "@supabase/ssr": "latest",
+  "@supabase/supabase-js": "latest",
+  "@tanstack/react-table": "^8.21.3",
+  "@types/recharts": "^2.0.1",
+  "@vercel/analytics": "1.3.1",
+  "autoprefixer": "^10.4.20",
+  "axios": "latest",
+  "class-variance-authority": "^0.7.1",
+  "clsx": "^2.1.1",
+  "cmdk": "1.0.4",
+  "date-fns": "4.1.0",
+  "embla-carousel-react": "8.5.1",
+  "framer-motion": "^12.23.24",
+  "geist": "^1.3.1",
+  "input-otp": "1.4.1",
+  "lucide-react": "^0.454.0",
+  "next": "14.2.25",
+  "next-themes": "^0.4.6",
+  "ogl": "^1.0.11",
+  "react": "^18.3.1",
+  "react-day-picker": "9.8.0",
+  "react-dom": "^18.3.1",
+  "react-hook-form": "^7.60.0",
+  "react-resizable-panels": "^2.1.7",
+  "recharts": "2.15.4",
+  "sonner": "^1.7.4",
+  "tailwind-merge": "^2.5.5",
+  "tailwindcss-animate": "^1.0.7",
+  "vaul": "^0.9.9",
+  "zod": "3.25.76"
+}
 ```
 
-### 2. Install Dependencies
-```bash
-# Install pnpm if you haven't already
-npm install -g pnpm
-
-# Install project dependencies
-pnpm install
+```json
+"devDependencies": {
+  "@tailwindcss/postcss": "^4.1.9",
+  "@types/node": "^22",
+  "@types/react": "^18.3.26",
+  "@types/react-dom": "^18.3.7",
+  "postcss": "^8.5",
+  "tailwindcss": "^4.1.9",
+  "tw-animate-css": "1.3.3",
+  "typescript": "^5"
+}
 ```
 
-### 3. Set Up Environment Variables
-```bash
-# Copy the example environment file
-cp .env.example .env
+## Architecture
 
-# Edit .env with your actual credentials
-# You'll need:
-# - Supabase URL and anon key
-# - Google Gemini API key
+### Folder layout
+
+```text
+frontend/
+|-- app/
+|   |-- analyze/
+|   |-- auth/
+|   |-- dashboard/
+|   |-- landing/
+|   |-- layout.tsx
+|   `-- page.tsx
+|-- components/
+|   |-- ui/
+|   |-- landing/
+|   |-- GeminiChat.tsx
+|   |-- HistoryCard.tsx
+|   |-- HistoryDetailModal.tsx
+|   |-- modern-prediction-results.tsx
+|   |-- simple-image-upload.tsx
+|   `-- StatCard.tsx
+|-- hooks/
+|-- lib/
+|   `-- supabase/
+|-- public/
+|-- scripts/
+|   `-- 001_create_tables.sql
+|-- services/
+|   |-- api.ts
+|   |-- api.ts.bak
+|   `-- unified-api.ts
+|-- middleware.ts
+|-- next.config.mjs
+|-- package.json
+`-- tsconfig.json
 ```
 
-### 4. Configure Your Services
+### Active runtime paths
 
-#### Supabase Setup:
-1. Create a new project at [supabase.com](https://supabase.com)
-2. Go to Settings > API to get your URL and anon key
-3. Run the SQL script in `scripts/001_create_tables.sql` in your Supabase SQL editor
+- `app/analyze/page.tsx`: upload, inference call, Supabase insert
+- `app/dashboard/page.tsx`: auth check, history query, derived metric rendering
+- `services/unified-api.ts`: active integration layer for backend inference and Gemini
+- `lib/supabase/*`: browser/server/middleware client creation
+- `components/HistoryDetailModal.tsx`: saved-case review modal
+- `components/GeminiChat.tsx`: assistant UI
 
-#### Google Gemini API Setup:
-1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Create a new API key
-3. Add it to your `.env` file as `NEXT_PUBLIC_GEMINI_API_KEY`
+Legacy paths that still exist:
 
-### 5. Start the Development Server
-```bash
-pnpm dev
+- `services/api.ts`
+- `services/api.ts.bak`
+
+## API and Interface Contract
+
+### Backend inference contract
+
+The frontend expects a backend at `NEXT_PUBLIC_BACKEND_URL` with:
+
+- `GET /health`
+- `POST /predict`
+- `POST /predict-with-gradcam`
+
+The active UI path uses `POST /predict-with-gradcam`.
+
+Request:
+
+```http
+POST /predict-with-gradcam
+Content-Type: multipart/form-data
+
+file=<binary image>
 ```
 
-The application will be available at `http://localhost:3000`
+Expected response shape:
 
-## Project Structure
-
-```
-├── app/                   # Next.js 14 app directory
-│   ├── analyze/          # Image analysis page
-│   ├── auth/             # Authentication pages (login, signup)
-│   ├── dashboard/        # User dashboard with analysis history
-│   ├── landing/          # Landing page
-│   ├── globals.css       # Global styles
-│   ├── layout.tsx        # Root layout with providers
-│   └── page.tsx          # Home page
-├── components/           
-│   ├── ui/              # Reusable UI components (shadcn/ui)
-│   ├── landing/         # Landing page specific components
-│   ├── image-upload.tsx # Image upload component
-│   ├── results-display.tsx # Results display component
-│   └── theme-provider.tsx # Theme context provider
-├── lib/
-│   ├── supabase/        # Supabase client configuration
-│   └── utils.ts         # Utility functions
-├── services/
-│   └── api.ts           # Google Gemini API integration
-├── hooks/               # Custom React hooks
-├── public/              # Static assets
-├── scripts/             # Database setup scripts
-└── styles/              # Additional styles
+```ts
+interface UnifiedPredictionResult {
+  prediction: string
+  confidence: number
+  analysis?: string
+  probabilities?: { benign: number; malignant: number }
+  source: "backend" | "gemini" | "combined"
+  processing_time: number
+  heatmap?: string
+}
 ```
 
-## Configuration
+### Gemini contract
 
-### Environment Variables
+`services/unified-api.ts` supports:
 
-Create a `.env` file in the root directory with the following variables:
+- `predictCancer(file, "backend" | "gemini" | "both")`
+- `sendChatMessage(message)`
+- health checks for backend and Gemini
+
+### Supabase contract
+
+The dashboard assumes a record shape compatible with:
+
+```ts
+interface HistoryAnalysis {
+  id: string
+  created_at: string
+  prediction: string
+  confidence: number
+  image_url: string
+  heatmap?: string | null
+  probabilities?: {
+    benign: number
+    malignant: number
+  } | null
+}
+```
+
+The SQL bootstrap in `scripts/001_create_tables.sql` creates:
+
+- `id`
+- `user_id`
+- `image_url`
+- `prediction`
+- `confidence`
+- `heatmap_url`
+- `created_at`
+- `processing_time`
+
+The active analyze page inserts:
+
+- `user_id`
+- `prediction`
+- `confidence`
+- `image_url`
+- `probabilities`
+- `heatmap`
+
+This schema mismatch is real and needs correction before production use.
+
+### Key component interfaces
+
+`SimpleImageUpload`
+
+```ts
+interface SimpleImageUploadProps {
+  onImageUpload: (file: File) => void
+  isLoading: boolean
+}
+```
+
+`ModernPredictionResults`
+
+```ts
+interface ModernPredictionResultsProps {
+  results: UnifiedPredictionResult
+}
+```
+
+`HistoryCard`
+
+```ts
+interface HistoryCardProps {
+  analysis: HistoryAnalysis
+}
+```
+
+`HistoryDetailModal`
+
+```ts
+interface HistoryDetailModalProps {
+  analysis: HistoryAnalysis
+  children: React.ReactNode
+}
+```
+
+`StatCard`
+
+```ts
+interface StatCardProps {
+  title: string
+  value: string | number
+  icon: LucideIcon
+  description: string
+  detail?: string
+  tone?: "emerald" | "rose" | "amber" | "sky"
+  meter?: number
+}
+```
+
+## Setup and Installation
+
+### Prerequisites
+
+- Node.js 18+
+- npm
+- Supabase project and credentials
+- backend running locally or remotely
+- Gemini API key if Gemini features are required
+
+### Environment variables
+
+Create `frontend/.env.local`:
 
 ```env
-# Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-
-# API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:3000
-
-# Authentication Redirect URL
+NEXT_PUBLIC_SUPABASE_URL=<supabase-project-url>
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<supabase-anon-key>
 NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000/dashboard
-
-# Google Gemini AI Configuration
-NEXT_PUBLIC_GEMINI_API_KEY=your_google_gemini_api_key
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+NEXT_PUBLIC_GEMINI_API_KEY=<gemini-api-key>
 ```
 
-### Next.js Configuration
-The project uses Next.js 14 with the following configuration (`next.config.mjs`):
-- TypeScript build errors are ignored in production
-- Image optimization is disabled for compatibility
+Variables actually referenced in code:
 
-### TypeScript Configuration
-- Strict mode enabled
-- ES6 target
-- Path aliases configured for clean imports (`@/` prefix)
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL`
+- `NEXT_PUBLIC_BACKEND_URL`
+- `NEXT_PUBLIC_GEMINI_API_KEY`
 
-### Tailwind Configuration
-- Custom theme using shadcn/ui
-- New York style variant
-- CSS variables for theming
-- Dark/light mode support
+### Install
 
-## Authentication
-
-The application uses Supabase Authentication with the following features:
-- **Email/Password authentication** - Secure user registration and login
-- **Protected routes** - Middleware-based route protection
-- **Session management** - Automatic session handling and refresh
-- **Authentication middleware** - Server-side session validation
-- **Redirect handling** - Smart redirects for authenticated/unauthenticated users
-
-## AI Integration
-
-The application integrates with Google's Gemini Pro Vision AI model:
-- **Model**: Gemini Pro Vision for image analysis
-- **Processing**: Client-side image conversion to base64
-- **Analysis**: Advanced histopathology pattern recognition
-- **Results**: Structured JSON responses with confidence scores
-- **Error handling**: Graceful fallbacks and detailed error messages
-- **Performance**: Processing time tracking and optimization
-
-### AI Analysis Features:
-- Cancer detection in histopathology images
-- Confidence scoring (0-1 scale)
-- Detailed explanations of findings
-- Cellular pattern analysis
-- Tissue organization assessment
-
-## Components
-
-### UI Components
-- **shadcn/ui library** - Comprehensive set of accessible components
-- **Radix UI primitives** - Unstyled, accessible component foundation
-- **Tailwind CSS styling** - Utility-first CSS framework
-- **Dark/light theme support** - Seamless theme switching
-- **Responsive design** - Mobile-first approach
-
-### Custom Components
-- **ImageUpload** - Drag-and-drop image upload with validation
-- **ResultsDisplay** - Analysis results with confidence indicators
-- **Landing page components** - Hero, Features, CTA sections
-- **Navigation components** - Responsive navigation and layout
-
-## Development Commands
-
-### Frontend Commands
 ```bash
-# Install dependencies
-pnpm install
-
-# Start development server
-pnpm dev
-
-# Build for production
-pnpm build
-
-# Start production server
-pnpm start
-
-# Run linting
-pnpm lint
+cd frontend
+npm install
 ```
 
-### Database Commands
+### Bootstrap database
+
+Run `scripts/001_create_tables.sql` in Supabase before using dashboard history.
+
+### Run locally
+
 ```bash
-# Set up Supabase tables (run in Supabase SQL editor)
-# File: scripts/001_create_tables.sql
+npm run dev
 ```
 
-### Environment Setup
+### Build and serve
+
 ```bash
-# Copy environment template
-cp .env.example .env
-
-# Edit environment variables
-# Add your Supabase and Gemini API credentials
+npm run build
+npm run start
 ```
 
-## Deployment
+## How It Works
 
-### Vercel Deployment (Recommended)
-1. **Connect Repository**
-   - Import your GitHub repository to Vercel
-   - Vercel will auto-detect Next.js configuration
+### Authentication
 
-2. **Environment Variables**
-   - Add all environment variables from `.env.example`
-   - Ensure all API keys and URLs are correctly set
+- `app/auth/login/page.tsx` uses `supabase.auth.signInWithPassword`
+- `app/auth/sign-up/page.tsx` uses `supabase.auth.signUp`
+- `middleware.ts` delegates to `lib/supabase/middleware.ts`
+- middleware redirects unauthenticated users away from `/dashboard` and `/analyze`
+- authenticated users are redirected away from `/auth/login` and `/auth/sign-up`
 
-3. **Build Settings**
-   - Framework Preset: Next.js
-   - Build Command: `pnpm build`
-   - Output Directory: `.next`
+### Analyze flow
 
-### Manual Deployment
-```bash
-# Build the application
-pnpm build
+1. `SimpleImageUpload` returns a `File`
+2. `app/analyze/page.tsx` creates a local preview via `FileReader`
+3. the page calls `unifiedAPI.predictCancer(file, "backend")`
+4. `services/unified-api.ts` posts multipart form data to `${BACKEND_URL}/predict-with-gradcam`
+5. result data is rendered by `ModernPredictionResults`
+6. the record is inserted into Supabase under `analysis_history`
 
-# Start production server
-pnpm start
-```
+### Dashboard flow
 
-## Troubleshooting
+1. `app/dashboard/page.tsx` fetches the current user from Supabase
+2. it queries `analysis_history` filtered by `user_id`
+3. derived metrics are computed client-side:
+   - total analyses
+   - malignant count
+   - benign count
+   - average confidence
+   - seven-day activity
+   - malignant rate
+4. `HistoryCard` renders summaries
+5. `HistoryDetailModal` renders original image and Grad-CAM side-by-side
 
-### Common Issues
+### Gemini chat
 
-**1. Gemini API Key Issues**
-- Ensure your API key is valid and has proper permissions
-- Check the Google AI Studio console for usage limits
-- Verify the key is correctly set in environment variables
+`GeminiChat` keeps message history in component state and calls `unifiedAPI.sendChatMessage(message)`.
 
-**2. Supabase Connection Issues**
-- Verify your Supabase URL and anon key are correct
-- Check that your Supabase project is active
-- Ensure the database tables are created using the provided SQL script
+That method:
 
-**3. Image Upload Issues**
-- Check file size limits (recommended < 10MB)
-- Ensure supported image formats (JPEG, PNG, WebP)
-- Verify network connectivity for API calls
+- instantiates `gemini-2.5-flash`
+- injects a system instruction describing HistoAI
+- returns raw assistant text
 
-**4. Build Issues**
-- Clear `.next` directory and rebuild
-- Check for TypeScript errors
-- Ensure all dependencies are installed
+### State and rendering model
 
-## Environment Variables Reference
+The app uses local component state rather than a global store:
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | `https://xxx.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | `eyJhbGciOiJIUzI1NiIs...` |
-| `NEXT_PUBLIC_API_URL` | Frontend URL (for redirects) | `http://localhost:3000` |
-| `NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL` | Auth redirect URL | `http://localhost:3000/dashboard` |
-| `NEXT_PUBLIC_GEMINI_API_KEY` | Google Gemini API key | `AIzaSyAKZn6r9QW-yTxI...` |
+- `useState` for request state, result state, and chat state
+- `useEffect` for auth checks and initial fetches
+- direct service calls from page components
 
-## Contributing
+## Key Design Decisions
 
-1. Fork the repository
-2. Create a new branch for your feature
-3. Make your changes following the project conventions
-4. Test your changes thoroughly
-5. Submit a pull request with a clear description
+- App Router was used to keep routing, middleware, and page composition in a single framework.
+- Supabase is used directly from the frontend for auth and persistence, reducing custom backend surface area.
+- `unified-api.ts` abstracts backend inference and Gemini behind one API boundary.
+- Saved analyses are rendered from persisted records rather than replaying inference.
+- Grad-CAM is stored in a browser-friendly format so the dashboard can replay historical results without extra processing.
 
-## Development Workflow Summary
+## Known Limitations and Future Improvements
 
-### Initial Setup
-```bash
-# 1. Clone and navigate to project
-git clone <repository-url>
-cd histopathology-ai
-
-# 2. Install dependencies
-pnpm install
-
-# 3. Set up environment variables
-cp .env.example .env
-# Edit .env with your credentials
-
-# 4. Start development server
-pnpm dev
-```
-
-### Daily Development
-```bash
-# Start development server
-pnpm dev
-
-# Run linting
-pnpm lint
-
-# Build for testing
-pnpm build
-```
-
-### Key URLs
-- **Frontend**: http://localhost:3000
-- **Supabase Dashboard**: https://supabase.com/dashboard
-- **Google AI Studio**: https://makersuite.google.com/app/apikey
-
-## Architecture Overview
-
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Next.js App   │    │   Supabase       │    │  Google Gemini  │
-│   (Frontend)    │◄──►│   (Auth + DB)    │    │   (AI Analysis) │
-│                 │    │                  │    │                 │
-│ • React UI      │    │ • Authentication │    │ • Image Analysis│
-│ • Image Upload  │    │ • User Data      │    │ • Cancer Detection│
-│ • Results View  │    │ • History Storage│    │ • Confidence Score│
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-```
-
-## License
-
-This project is proprietary and confidential.
+- `analysis_history` SQL and the active insert payload do not match.
+- Gemini calls happen client-side, which is not appropriate for production secret handling.
+- `lib/supabase/client.ts` logs Supabase configuration data to the console and should be cleaned up.
+- `services/api.ts` and `services/api.ts.bak` duplicate older integration paths.
+- Image payloads are stored as data URLs rather than object storage references.
+- Dashboard aggregation is client-side and will not scale for large per-user histories.
