@@ -1,0 +1,26 @@
+logs/
+.vscode/
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/.vercel/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# Backend
+backend/__pycache__/
+backend/**/*.pyc
+backend/.pytest_cache/
+
+# Model
+model/.venv/
+model/.idea/
+model/__pycache__/
+model/**/*.pyc
+model/models.rar
+
+# OS / tooling
+.DS_Store
+Thumbs.db
