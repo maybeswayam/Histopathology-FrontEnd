@@ -1,0 +1,18 @@
+# Dependencies & build output (rebuilt inside image)
+node_modules
+.next
+out
+
+# Environment — never bake secrets into images
+.env
+.env.local
+.env.*.local
+
+# Tooling artifacts
+tsconfig.tsbuildinfo
+*.log
+
+# VCS / editor
+.git
+.gitignore
+.vscode

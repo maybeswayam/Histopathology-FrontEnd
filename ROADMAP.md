@@ -1,5 +1,9 @@
 # HistoAI Project - Complete Implementation Roadmap
 
+> **STALE (2026-07-29):** This file still describes Gemini dual-path and “FE not wired to FastAPI.”  
+> **Source of truth:** [`IMPROVEMENTS.md`](./IMPROVEMENTS.md), [`DESIGN_IMPROVEMENTS.md`](./DESIGN_IMPROVEMENTS.md), [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md).  
+> Current path: Next.js → FastAPI MobileNetV2 + Grad-CAM → Supabase history/storage. Gemini removed.
+
 ## 📋 Executive Summary
 
 **Project**: Histopathology Cancer Detection System  

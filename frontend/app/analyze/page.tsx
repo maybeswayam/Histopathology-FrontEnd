@@ -1,169 +1,375 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Microscope, AlertCircle, RefreshCw, LogOut, BarChart3, Image as ImageIcon, Sparkles } from "lucide-react"
-import { unifiedAPI } from "@/services/unified-api"
+import { AlertCircle, CheckCircle2, Microscope, RefreshCw } from "lucide-react"
+import { unifiedAPI, validateUploadFile } from "@/services/unified-api"
 import type { UnifiedPredictionResult } from "@/services/unified-api"
-import Link from "next/link"
+import type { AnalysisHistoryInsert } from "@/types/analysis"
+import { persistAnalysisMedia } from "@/lib/storage"
 import { SimpleImageUpload } from "@/components/simple-image-upload"
-import { ModernPredictionResults } from "@/components/modern-prediction-results"
+import { CaseReview } from "@/components/case/case-review"
+import { AppHeader } from "@/components/layout/app-header"
+import { ResearchDisclaimer } from "@/components/research-disclaimer"
+import { IntendedUseGate } from "@/components/intended-use-gate"
+import Link from "next/link"
+
+type AnalysisStage =
+  | "idle"
+  | "uploading"
+  | "running"
+  | "rendering"
+  | "complete"
+
+const STAGE_LABELS: Record<Exclude<AnalysisStage, "idle" | "complete">, string> = {
+  uploading: "Uploading and reading image…",
+  running: "Running model…",
+  rendering: "Rendering Grad-CAM…",
+}
 
 export default function AnalyzePage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [stage, setStage] = useState<AnalysisStage>("idle")
+  const [progress, setProgress] = useState(0)
   const [result, setResult] = useState<UnifiedPredictionResult | null>(null)
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [heatmapImage, setHeatmapImage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<{ id: string } | null>(null)
+  const [intendedUseAccepted, setIntendedUseAccepted] = useState(false)
+  const [historySaved, setHistorySaved] = useState(false)
+  const [historyWarning, setHistoryWarning] = useState<string | null>(null)
+  const [backendDown, setBackendDown] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+  const stageTimers = useRef<ReturnType<typeof setTimeout>[]>([])
+  const uploadedFileRef = useRef<File | null>(null)
+
+  const authBypass =
+    typeof process !== "undefined" &&
+    process.env.NEXT_PUBLIC_AUTH_BYPASS === "true"
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser()
       if (!currentUser) {
         router.push("/auth/login")
         return
       }
       setUser(currentUser)
       setIsLoading(false)
+
+      const healthy = await unifiedAPI.checkBackendHealth()
+      setBackendDown(!healthy)
     }
-    checkAuth()
+    void checkAuth()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- auth check once on mount
   }, [])
 
-  const handleImageUpload = (file: File) => {
-    setIsAnalyzing(true);
-    setResult(null);
-    setError(null);
-    setHeatmapImage(null);
+  useEffect(() => {
+    return () => {
+      stageTimers.current.forEach(clearTimeout)
+    }
+  }, [])
 
-    const reader = new FileReader();
+  const clearStageTimers = () => {
+    stageTimers.current.forEach(clearTimeout)
+    stageTimers.current = []
+  }
+
+  const startClientStages = () => {
+    clearStageTimers()
+    setStage("uploading")
+    setProgress(12)
+    stageTimers.current.push(
+      setTimeout(() => {
+        setStage("running")
+        setProgress(42)
+      }, 600),
+      setTimeout(() => {
+        setStage("rendering")
+        setProgress(78)
+      }, 1800),
+    )
+  }
+
+  const handleImageUpload = (file: File) => {
+    const validationError = validateUploadFile(file)
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+
+    uploadedFileRef.current = file
+    setIsAnalyzing(true)
+    setResult(null)
+    setError(null)
+    setHeatmapImage(null)
+    setHistorySaved(false)
+    setHistoryWarning(null)
+    startClientStages()
+
+    const reader = new FileReader()
     reader.onload = async (e) => {
-      const imageUrl = e.target?.result as string;
-      setUploadedImage(imageUrl);
+      const previewUrl = e.target?.result as string
+      setUploadedImage(previewUrl)
 
       try {
-        const prediction = await unifiedAPI.predictCancer(file, 'backend');
-        setResult(prediction);
+        setStage("running")
+        setProgress(45)
+        const prediction = await unifiedAPI.predictCancer(file)
+        setStage("rendering")
+        setProgress(85)
+        clearStageTimers()
+        setProgress(100)
+        setStage("complete")
+        setResult(prediction)
         if (prediction.heatmap) {
-          setHeatmapImage(prediction.heatmap);
+          setHeatmapImage(prediction.heatmap)
         }
 
-        if (user && imageUrl) {
-          const { error: dbError } = await supabase.from("analysis_history").insert({
-            user_id: user.id,
-            prediction: prediction.prediction,
-            confidence: prediction.confidence,
-            image_url: imageUrl,
-            probabilities: prediction.probabilities,
-            heatmap: prediction.heatmap, // Save the heatmap
-          });
-          if (dbError) {
-            throw new Error(`Database error: ${dbError.message}`);
+        if (user && previewUrl) {
+          if (authBypass) {
+            setHistoryWarning(
+              "Auth bypass is on — result was not saved. Set NEXT_PUBLIC_AUTH_BYPASS=false and configure Supabase in .env.local.",
+            )
+          } else {
+            const analysisId = crypto.randomUUID()
+            const media = await persistAnalysisMedia(supabase, {
+              userId: user.id,
+              analysisId,
+              imageFile: file,
+              heatmapDataUrl: prediction.heatmap,
+            })
+            if (!media.usedStorage) {
+              setHistoryWarning(
+                "Saved with inline image data. Create Supabase Storage buckets `slides` and `heatmaps` (see setup_supabase.sql) to avoid large database rows.",
+              )
+            }
+
+            const row: AnalysisHistoryInsert = {
+              user_id: user.id,
+              prediction: prediction.prediction,
+              confidence: prediction.confidence,
+              image_url: media.image_url,
+              probabilities: prediction.probabilities ?? null,
+              heatmap: media.heatmap,
+              heatmap_url: media.heatmap_url,
+              processing_time: Math.round(prediction.processing_time),
+              model_version: prediction.model_version ?? null,
+            }
+            const { error: dbError } = await supabase.from("analysis_history").insert(row)
+            if (dbError) {
+              // Retry without optional columns for older schemas
+              const { model_version: _mv, heatmap_url: _hu, ...legacy } = row
+              const retry = await supabase.from("analysis_history").insert(legacy)
+              if (retry.error) {
+                throw new Error(
+                  `Could not save to history: ${dbError.message}. Run frontend/scripts/setup_supabase.sql in the Supabase SQL editor.`,
+                )
+              }
+            }
+            setHistorySaved(true)
+            if (media.usedStorage) {
+              setUploadedImage(media.image_url)
+              if (media.heatmap) setHeatmapImage(media.heatmap)
+            }
           }
         }
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred.";
-        setError(errorMessage);
+        clearStageTimers()
+        setStage("idle")
+        setProgress(0)
+        const errorMessage =
+          err instanceof Error ? err.message : "An unexpected error occurred."
+        setError(errorMessage)
       } finally {
-        setIsAnalyzing(false);
+        setIsAnalyzing(false)
       }
-    };
+    }
     reader.onerror = () => {
-      setError("Failed to read the image file.");
-      setIsAnalyzing(false);
-    };
-    reader.readAsDataURL(file);
-  };
+      clearStageTimers()
+      setStage("idle")
+      setProgress(0)
+      setError("Failed to read the image file.")
+      setIsAnalyzing(false)
+    }
+    reader.readAsDataURL(file)
+  }
 
   const resetAnalysis = () => {
+    clearStageTimers()
     setResult(null)
     setUploadedImage(null)
     setError(null)
     setHeatmapImage(null)
-  }
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push("/")
+    setStage("idle")
+    setProgress(0)
+    setHistorySaved(false)
+    setHistoryWarning(null)
+    uploadedFileRef.current = null
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <RefreshCw className="h-12 w-12 text-gray-400 animate-spin" />
+      <div className="flex min-h-screen items-center justify-center bg-page-wash px-6">
+        <div
+          className="rounded-panel border border-subtle bg-panel px-8 py-10 text-center panel-shadow"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="mx-auto flex h-14 w-14 animate-spin items-center justify-center rounded-full border-4 border-primary/15 border-t-primary">
+            <Microscope className="h-5 w-5 text-primary" />
+          </div>
+          <h1 className="mt-5 text-xl font-semibold text-foreground">Loading workspace</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Preparing the analysis surface.</p>
+        </div>
       </div>
     )
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 text-gray-800">
-      <header className="bg-white/80 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-40">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/dashboard" className="flex items-center gap-2">
-              <Microscope className="h-7 w-7 text-green-600" />
-              <h1 className="text-xl font-bold text-gray-800">HistoAI</h1>
-            </Link>
-            <div className="flex items-center gap-4">
-              <Link href="/dashboard">
-                <Button variant="ghost" size="sm"><BarChart3 className="h-4 w-4 mr-2" />Dashboard</Button>
-              </Link>
-              <Button variant="ghost" size="sm" onClick={handleLogout}><LogOut className="h-4 w-4 mr-2" />Logout</Button>
-            </div>
-          </div>
-        </div>
-      </header>
+  const stageLabel =
+    stage === "uploading" || stage === "running" || stage === "rendering"
+      ? STAGE_LABELS[stage]
+      : null
 
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {error && (
+  return (
+    <div className="min-h-screen bg-page-wash text-foreground">
+      <AppHeader title="Analyze" showPrimaryAction={false} />
+      <ResearchDisclaimer />
+
+      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+        {authBypass && (
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>
+              Auth bypass is enabled. Sign-in and history saving are disabled. Set{" "}
+              <code className="text-xs">NEXT_PUBLIC_AUTH_BYPASS=false</code> and add real Supabase
+              keys in <code className="text-xs">.env.local</code> — see{" "}
+              <code className="text-xs">docs/LOCAL_SETUP.md</code>.
+            </AlertDescription>
           </Alert>
         )}
 
-        {!result && (
-          <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">AI-Powered Cancer Detection</h2>
-              <p className="mt-4 text-lg text-gray-600">Upload a histopathology image to get an instant analysis and heatmap visualization.</p>
-            </div>
-            <SimpleImageUpload onImageUpload={handleImageUpload} isLoading={isAnalyzing} />
-          </div>
+        {backendDown && (
+          <Alert className="mb-6 border-amber-500/40 bg-amber-50 text-amber-950">
+            <AlertCircle className="h-4 w-4 text-amber-700" />
+            <AlertDescription>
+              Inference server is unreachable. Start the FastAPI backend (
+              <code className="text-xs">cd backend && python run_server.py</code>) and ensure{" "}
+              <code className="text-xs">NEXT_PUBLIC_BACKEND_URL</code> matches.
+            </AlertDescription>
+          </Alert>
         )}
 
-        {result && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-3xl font-bold tracking-tight text-gray-900">Analysis Complete</h2>
-              <Button onClick={resetAnalysis} variant="outline"><RefreshCw className="h-4 w-4 mr-2" />New Analysis</Button>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-              <div className="lg:col-span-1 space-y-4">
-                <div className="p-2 bg-white rounded-lg border">
-                  <h3 className="text-sm font-semibold text-gray-500 mb-2 px-2">ORIGINAL IMAGE</h3>
-                  {uploadedImage && <img src={uploadedImage} alt="Uploaded" className="rounded-md w-full" />}
-                </div>
-              </div>
+        {!user ? null : (
+          <IntendedUseGate
+            userId={user.id}
+            onAccepted={() => setIntendedUseAccepted(true)}
+          >
+            {error && (
+              <Alert variant="destructive" className="mb-6" role="alert">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <span>{error}</span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="shrink-0 border-destructive/30 bg-panel"
+                    onClick={() => {
+                      setError(null)
+                      resetAnalysis()
+                    }}
+                  >
+                    Try again
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
 
-              <div className="lg:col-span-1">
-                <ModernPredictionResults results={result} />
-              </div>
-
-              <div className="lg:col-span-1 space-y-4">
-                <div className="p-2 bg-white rounded-lg border">
-                  <h3 className="text-sm font-semibold text-gray-500 mb-2 px-2">GRAD-CAM HEATMAP</h3>
-                  {heatmapImage && <img src={heatmapImage} alt="Grad-CAM Heatmap" className="rounded-md w-full" />}
+            {!result && (
+              <div className="mx-auto max-w-3xl">
+                <div className="mb-8">
+                  <h2 className="font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                    Upload a slide
+                  </h2>
+                  <p className="mt-3 max-w-xl text-base leading-7 text-muted-foreground">
+                    Run a research model suggestion and Grad-CAM attention map on a
+                    histopathology image. Outputs are for education and research — not clinical
+                    diagnosis.
+                  </p>
                 </div>
+                <SimpleImageUpload
+                  onImageUpload={handleImageUpload}
+                  isLoading={isAnalyzing}
+                  stageLabel={stageLabel}
+                  progress={progress}
+                  disabled={!intendedUseAccepted || authBypass}
+                />
               </div>
-            </div>
-          </div>
+            )}
+
+            {result && (
+              <div className="mx-auto max-w-4xl">
+                <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <h2 className="font-display text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+                      Case review
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Model suggestion and Grad-CAM
+                      {result.model_version ? ` · ${result.model_version}` : null}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {historySaved ? (
+                      <Button asChild variant="default" className="rounded-lg">
+                        <Link href="/dashboard">View on dashboard</Link>
+                      </Button>
+                    ) : null}
+                    <Button onClick={resetAnalysis} variant="outline" className="rounded-lg">
+                      <RefreshCw className="h-4 w-4" aria-hidden />
+                      New analysis
+                    </Button>
+                  </div>
+                </div>
+
+                {historySaved && (
+                  <Alert className="mb-5 border-primary/20 bg-primary/5">
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
+                    <AlertDescription>
+                      Saved to your analysis history. Open the dashboard to review this case later.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {historyWarning && (
+                  <Alert className="mb-5 border-amber-500/30 bg-amber-50">
+                    <AlertCircle className="h-4 w-4 text-amber-700" />
+                    <AlertDescription>{historyWarning}</AlertDescription>
+                  </Alert>
+                )}
+
+                <CaseReview
+                  variant="page"
+                  data={{
+                    prediction: result.prediction,
+                    confidence: result.confidence,
+                    probabilities: result.probabilities,
+                    imageUrl: uploadedImage,
+                    heatmapUrl: heatmapImage ?? result.heatmap,
+                    abstain: result.abstain,
+                    modelVersion: result.model_version,
+                  }}
+                />
+              </div>
+            )}
+          </IntendedUseGate>
         )}
       </main>
     </div>

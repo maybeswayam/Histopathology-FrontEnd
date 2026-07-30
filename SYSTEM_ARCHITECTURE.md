@@ -1,5 +1,9 @@
 # HistoAI - Complete System Architecture Analysis
 
+> **STALE (2026-07-29):** Architecture below still mentions Gemini as a primary classifier.  
+> **Source of truth:** [`IMPROVEMENTS.md`](./IMPROVEMENTS.md) §3 and [`docs/REPOSITORY_MAP.md`](./docs/REPOSITORY_MAP.md).  
+> Live path: browser → FastAPI (`/predict-with-gradcam`, JWT + CORS) → CNN + Grad-CAM; history/media via Supabase.
+
 ## Overview
 
 This is a **Histopathology Cancer Detection System** that combines multiple AI approaches:

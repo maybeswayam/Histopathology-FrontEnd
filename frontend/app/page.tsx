@@ -1,129 +1,163 @@
 "use client"
 
 import Link from "next/link"
+import dynamic from "next/dynamic"
+import { useEffect, useState } from "react"
+import { ArrowRight, Layers3, ScanSearch, UploadCloud } from "lucide-react"
+import { motion, useReducedMotion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Microscope, Upload, BrainCircuit, Eye } from "lucide-react"
-import { motion } from "framer-motion"
-import dynamic from 'next/dynamic'
+import { Logo } from "@/components/brand/logo"
+import { MarketingHeader } from "@/components/layout/marketing-header"
 
-const DarkVeil = dynamic(() => import('@/components/landing/dark_veil').then((mod) => mod.default), { ssr: false })
+const DarkVeil = dynamic(
+  () => import("@/components/landing/dark_veil").then((mod) => mod.default),
+  { ssr: false },
+)
 
-export default function LandingPage() {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.2, delayChildren: 0.3 },
-    },
-  }
+const steps = [
+  {
+    icon: UploadCloud,
+    title: "Upload a slide",
+    body: "Add a histopathology image for research analysis.",
+  },
+  {
+    icon: ScanSearch,
+    title: "Run the model",
+    body: "Receive a benign or malignant prediction with confidence scores.",
+  },
+  {
+    icon: Layers3,
+    title: "Review attention",
+    body: "Inspect the Grad-CAM overlay to see where the model focused — model attention, not proof of disease.",
+  },
+]
 
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { duration: 0.5 } },
-  }
+export default function HomePage() {
+  const prefersReducedMotion = useReducedMotion()
+  const [showVeil, setShowVeil] = useState(false)
+
+  useEffect(() => {
+    if (!prefersReducedMotion) setShowVeil(true)
+  }, [prefersReducedMotion])
+
+  const fade = prefersReducedMotion
+    ? {}
+    : {
+        initial: { opacity: 0, y: 16 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] as const },
+      }
 
   return (
-    <div className="flex flex-col min-h-screen bg-white text-gray-800 relative">
-      {/* Fixed Background with DarkVeil */}
-      <div className="fixed inset-0 z-0 bg-white">
-        <div className="absolute inset-0 opacity-[0.85]">
-          <DarkVeil hueShift={130} noiseIntensity={0.08} scanlineIntensity={0.15} scanlineFrequency={400} speed={0.6} warpAmount={0.4} />
+    <div className="relative flex min-h-screen flex-col text-foreground">
+      {showVeil ? (
+        <div className="pointer-events-none fixed inset-0 z-0 bg-white" aria-hidden>
+          <div className="absolute inset-0 opacity-[0.98]">
+            <DarkVeil
+              hueShift={130}
+              noiseIntensity={0.06}
+              scanlineIntensity={0.1}
+              scanlineFrequency={400}
+              speed={0.4}
+              warpAmount={0.3}
+            />
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="fixed inset-0 z-0 bg-page-wash" aria-hidden />
+      )}
 
-      <header className="px-4 lg:px-6 h-16 flex items-center bg-transparent backdrop-blur-sm fixed top-0 w-full z-50">
-        <Link href="#" className="flex items-center justify-center">
-          <Microscope className="h-7 w-7 text-green-600" />
-          <span className="ml-3 text-xl font-bold text-gray-900">HistoAI</span>
-        </Link>
-        <nav className="ml-auto flex gap-3 sm:gap-4 items-center">
-          <Link href="/auth/login">
-            <Button variant="ghost" className="text-sm font-medium">Login</Button>
-          </Link>
-          <Link href="/auth/sign-up">
-            <Button className="bg-green-600 hover:bg-green-700 text-sm">Get Started</Button>
-          </Link>
-        </nav>
-      </header>
+      <MarketingHeader transparent />
 
-      <main className="flex-1 relative z-10">
-        {/* Hero Section */}
-        <section className="relative h-screen w-full flex items-center justify-center text-center overflow-hidden">
-          <motion.div
-            className="container px-4 md:px-6"
-            initial="hidden"
-            animate="visible"
-            variants={containerVariants}
-          >
-            <motion.h1 variants={itemVariants} className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl/none text-gray-900">
-              AI-Powered Clarity for Cancer Diagnosis
-            </motion.h1>
-            <motion.p variants={itemVariants} className="mx-auto max-w-[700px] text-gray-600 md:text-xl mt-6">
-              Harness the power of artificial intelligence to analyze histopathology images with unprecedented accuracy. Get instant insights with explainable AI visualizations.
-            </motion.p>
-            <motion.div variants={itemVariants} className="mt-8">
-              <Link href="/dashboard">
-                <Button size="lg" className="bg-green-600 hover:bg-green-700 text-lg px-8 py-6">
-                  Get Started
-                </Button>
-              </Link>
-            </motion.div>
+      <main className="relative z-10 flex-1">
+        {/* Hero — v1 composition, current type + veil */}
+        <section className="flex min-h-screen w-full flex-col items-center justify-center px-4 pb-16 pt-28 text-center sm:px-6">
+          <motion.div className="mx-auto w-full max-w-4xl" {...fade}>
+            <div className="mb-8 flex justify-center">
+              <Logo href={null} size="hero" emphasize />
+            </div>
+
+            <h1 className="mt-2 text-balance font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+              Intelligent histopathology
+              <span className="block bg-gradient-to-r from-primary via-emerald-600 to-lime-600 bg-clip-text text-transparent">
+                cancer analysis
+              </span>
+            </h1>
+
+            <p className="mx-auto mt-6 max-w-2xl text-pretty text-base leading-7 text-muted-foreground sm:text-lg">
+              Upload a slide, get a model prediction with confidence scores, and
+              review Grad-CAM attention maps. Built for research and education —
+              not clinical diagnosis.
+            </p>
+
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+              <Button asChild size="lg" className="rounded-lg px-7">
+                <Link href="/auth/sign-up">Get started</Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="rounded-lg bg-panel/80 px-7 backdrop-blur"
+              >
+                <Link href="/guide">New here? See how it works</Link>
+              </Button>
+            </div>
           </motion.div>
         </section>
 
-        {/* How It Works Section */}
-        <section className="w-full py-16 md:py-24 lg:py-32 bg-transparent">
-          <div className="container mx-auto px-4 md:px-6">
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ duration: 0.5 }}>
-              <h2 className="text-3xl font-bold tracking-tighter text-center sm:text-4xl md:text-5xl">A Simple, Powerful Workflow</h2>
-              <p className="mx-auto max-w-[700px] text-gray-600 md:text-xl mt-4 text-center">Three easy steps to transform your analysis process.</p>
-            </motion.div>
-            <motion.div
-              className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-3 sm:gap-12 mt-12"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.2 }}
-              variants={containerVariants}
-            >
-              <motion.div variants={itemVariants} className="grid gap-2 text-center">
-                <div className="flex justify-center items-center mb-4">
-                  <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-                    <Upload className="h-8 w-8 text-green-600" />
-                  </div>
-                </div>
-                <h3 className="text-xl font-bold">1. Upload Image</h3>
-                <p className="text-gray-600">Securely upload your histopathology slide.</p>
-              </motion.div>
-              <motion.div variants={itemVariants} className="grid gap-2 text-center">
-                <div className="flex justify-center items-center mb-4">
-                  <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-                    <BrainCircuit className="h-8 w-8 text-green-600" />
-                  </div>
-                </div>
-                <h3 className="text-xl font-bold">2. AI Analysis</h3>
-                <p className="text-gray-600">Our model provides an instant prediction.</p>
-              </motion.div>
-              <motion.div variants={itemVariants} className="grid gap-2 text-center">
-                <div className="flex justify-center items-center mb-4">
-                  <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-                    <Eye className="h-8 w-8 text-green-600" />
-                  </div>
-                </div>
-                <h3 className="text-xl font-bold">3. Review Results</h3>
-                <p className="text-gray-600">Visualize the results with an interactive heatmap.</p>
-              </motion.div>
-            </motion.div>
+        {/* How it works — transparent, icon-led, on the veil */}
+        <section className="border-t border-white/40 py-20 sm:py-28">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <h2 className="font-display text-center text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              How it works
+            </h2>
+            <p className="mx-auto mt-3 max-w-lg text-center text-muted-foreground">
+              Three steps from slide to interpretable output.
+            </p>
+
+            <ol className="mt-14 grid gap-12 sm:grid-cols-3 sm:gap-8">
+              {steps.map((step, index) => {
+                const Icon = step.icon
+                return (
+                  <li key={step.title} className="relative flex flex-col items-center text-center">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-subtle/80 bg-panel/80 text-primary backdrop-blur-sm">
+                      <Icon className="h-6 w-6" aria-hidden />
+                    </div>
+                    <h3 className="mt-5 text-xl font-semibold text-foreground">{step.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">{step.body}</p>
+                    {index < steps.length - 1 ? (
+                      <ArrowRight
+                        className="absolute -right-10 top-5 hidden h-5 w-5 text-primary/50 sm:block"
+                        aria-hidden
+                      />
+                    ) : null}
+                  </li>
+                )
+              })}
+            </ol>
           </div>
         </section>
 
-        {/* Project Origin Section */}
-        <section className="w-full py-16 md:py-24 bg-transparent">
-            <div className="container mx-auto px-4 md:px-6 text-center">
-                <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ duration: 0.5 }}>
-                    <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">From a College Project to a Powerful Tool</h2>
-                    <p className="mx-auto max-w-[700px] text-gray-600 md:text-xl mt-4">This project was born from the collaboration of three friends passionate about using AI to make a difference in medical technology.</p>
-                </motion.div>
+        {/* Trust / limitations */}
+        <section className="border-t border-white/40 bg-panel/50 py-20 backdrop-blur-sm sm:py-24">
+          <div className="mx-auto max-w-2xl px-4 text-center sm:px-6">
+            <h2 className="font-display text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              Intended use
+            </h2>
+            <p className="mt-4 text-base leading-7 text-muted-foreground">
+              HistoAI is a research and educational tool for exploring AI-assisted
+              histopathology analysis. Predictions are model outputs, not medical
+              diagnoses. Grad-CAM highlights model attention and should not be
+              treated as definitive evidence of disease. Always follow institutional
+              review and clinical standards for patient care.
+            </p>
+            <div className="mt-10">
+              <Button asChild variant="outline" size="lg" className="rounded-lg px-7">
+                <Link href="/auth/sign-up">Get started with HistoAI</Link>
+              </Button>
             </div>
+          </div>
         </section>
       </main>
     </div>

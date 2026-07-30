@@ -1,65 +1,64 @@
 "use client"
 
+import { AuthShell } from "@/components/auth/auth-shell"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
-import { Microscope, CheckCircle, Mail } from "lucide-react"
+import { ArrowRight, CheckCircle, Mail } from "lucide-react"
 
 export default function SignUpSuccessPage() {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Link href="/" className="flex items-center space-x-3 w-fit">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-lg flex items-center justify-center">
-              <Microscope className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
+    <AuthShell>
+      <div className="w-full max-w-md">
+        <div className="relative overflow-hidden rounded-panel border border-subtle bg-panel p-8 text-center panel-shadow sm:p-10">
+          <div
+            className="absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent"
+            aria-hidden
+          />
+          <div className="mb-6 flex justify-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-benign-muted sm:h-20 sm:w-20">
+              <CheckCircle className="h-8 w-8 text-benign sm:h-10 sm:w-10" />
             </div>
-            <h1 className="font-serif text-xl sm:text-2xl font-bold text-foreground">HistoAI</h1>
-          </Link>
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="font-display text-3xl font-bold tracking-tight text-foreground">
+              Account created
+            </h2>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Your HistoAI workspace is almost ready.
+            </p>
+          </div>
+
+          <div className="mt-8 rounded-lg border border-subtle bg-muted/80 p-4 text-left">
+            <div className="flex items-start gap-3">
+              <Mail className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+              <div>
+                <p className="text-sm font-medium text-foreground">Verify your email</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  We&apos;ve sent a confirmation link. Check your inbox and verify to unlock
+                  your workspace.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 space-y-3">
+            <Button asChild className="w-full rounded-lg">
+              <Link href="/auth/login">
+                Go to sign in
+                <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full rounded-lg bg-transparent">
+              <Link href="/">Back to home</Link>
+            </Button>
+          </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6 sm:p-8 text-center space-y-6">
-            <div className="flex justify-center">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle className="h-8 w-8 sm:h-10 sm:w-10 text-green-600" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <h1 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">Account Created!</h1>
-              <p className="font-sans text-muted-foreground">Your account has been successfully created.</p>
-            </div>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
-              <div className="flex items-start gap-3">
-                <Mail className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div className="text-left">
-                  <p className="font-medium text-blue-900 text-sm">Verify Your Email</p>
-                  <p className="text-xs text-blue-700 mt-1">
-                    We've sent a confirmation email. Please check your inbox and click the link to verify your account.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <Link href="/auth/login" className="block">
-                <Button className="w-full">Go to Login</Button>
-              </Link>
-              <Link href="/" className="block">
-                <Button variant="outline" className="w-full bg-transparent">
-                  Back to Home
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </main>
-    </div>
+        <p className="mt-6 text-center text-xs leading-relaxed text-muted-foreground">
+          Research and educational use only. Not for clinical diagnosis.
+        </p>
+      </div>
+    </AuthShell>
   )
 }

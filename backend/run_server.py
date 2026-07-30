@@ -1,48 +1,33 @@
 #!/usr/bin/env python3
-"""
-Simple script to run the FastAPI server
-"""
+"""Run the FastAPI inference server using env-based settings."""
 
-import uvicorn
-import os
 import sys
 
-def main():
-    """Run the FastAPI server"""
-    # Check if model directory exists
-    if not os.path.exists("models"):
-        print("Creating models directory...")
-        os.makedirs("models")
-    
-    # Check for model file (either naming convention)
-    model_files = ["models/best_model.pth", "models/model_best.pth"]
-    model_found = any(os.path.exists(path) for path in model_files)
-    
-    if not model_found:
-        print("Warning: No model file found. Looking for either:")
-        for path in model_files:
-            print(f"- {path}")
-        print("\nThe server will start and attempt to find a model in alternative locations.")
-    
-    # Run the server
-    print("Starting Histopathology Cancer Detection API server...")
-    print("Server will be available at: http://localhost:8000")
-    print("API documentation: http://localhost:8000/docs")
-    print("Press Ctrl+C to stop the server")
-    
+import uvicorn
+
+from src.config import get_settings
+
+
+def main() -> None:
+    settings = get_settings()
+    print(f"Starting HistoAI API on {settings.host}:{settings.port}")
+    print(f"Model version: {settings.model_version}")
+    print(f"Auth disabled: {settings.auth_disabled}")
+    print(f"CORS origins: {settings.cors_origins}")
     try:
         uvicorn.run(
             "app:app",
-            host="0.0.0.0",
-            port=8000,
-            reload=True,
-            log_level="info"
+            host=settings.host,
+            port=settings.port,
+            reload=settings.reload,
+            log_level="info",
         )
     except KeyboardInterrupt:
         print("\nServer stopped by user")
     except Exception as e:
         print(f"Error starting server: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

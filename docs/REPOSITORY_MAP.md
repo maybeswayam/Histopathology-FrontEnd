@@ -5,10 +5,9 @@
 - `frontend/app/page.tsx`: landing page
 - `frontend/app/analyze/page.tsx`: image upload and prediction flow
 - `frontend/app/dashboard/page.tsx`: account dashboard and saved history
-- `frontend/services/unified-api.ts`: frontend API wrapper for backend and Gemini
+- `frontend/services/unified-api.ts`: frontend API wrapper for FastAPI inference
 - `frontend/components/HistoryCard.tsx`: saved case card
 - `frontend/components/HistoryDetailModal.tsx`: saved case popup
-- `frontend/components/GeminiChat.tsx`: Gemini copilot panel
 - `frontend/lib/supabase/*`: Supabase client, server, and middleware helpers
 
 ## backend

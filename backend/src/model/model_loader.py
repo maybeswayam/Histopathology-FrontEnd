@@ -1,3 +1,4 @@
+import os
 import torch
 import torchvision.transforms as transforms
 from pathlib import Path
@@ -6,11 +7,19 @@ from pathlib import Path
 class HistoPathModel:
     def __init__(self, device="cpu"):
         self.device = device
+        self.model_path = None
         self.model = self._load_model()
         self.transform = self._get_transforms()
 
     def _find_model_file(self):
-        """Find the model file in various possible locations."""
+        """Find the model file via MODEL_PATH or common locations."""
+        env_path = os.getenv("MODEL_PATH", "").strip()
+        if env_path:
+            candidate = Path(env_path)
+            if candidate.exists():
+                return candidate
+            raise FileNotFoundError(f"MODEL_PATH set but file not found: {env_path}")
+
         possible_names = ["model_best.pth", "best_model.pth"]
         possible_paths = [
             Path.cwd(),
@@ -27,7 +36,7 @@ class HistoPathModel:
                         return model_path
 
         raise FileNotFoundError(
-            "Model file not found. Searched for model_best.pth or best_model.pth in:\n"
+            "Model file not found. Set MODEL_PATH or place model_best.pth / best_model.pth in:\n"
             + "\n".join(f"- {p}" for p in possible_paths)
         )
 
@@ -35,6 +44,7 @@ class HistoPathModel:
         """Load the model from disk."""
         try:
             model_path = self._find_model_file()
+            self.model_path = model_path
             print(f"Found model at: {model_path}")
 
             from src.model.model import get_model

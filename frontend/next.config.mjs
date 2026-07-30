@@ -1,9 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  output: "standalone",
   images: {
+    // Signed Supabase URLs + data URLs are used via <img>; keep unoptimized until
+    // all media goes through next/image with known hosts.
     unoptimized: true,
   },
 }

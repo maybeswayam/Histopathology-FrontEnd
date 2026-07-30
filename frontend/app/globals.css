@@ -4,31 +4,42 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(1 0 0); /* Pure white background */
-  --foreground: oklch(0.27 0.01 258); /* Dark text #374151 */
-  --card: oklch(1 0 0); /* Clean white cards */
-  --card-foreground: oklch(0.27 0.01 258); /* Dark text in cards */
-  --popover: oklch(0.99 0 0 / 0.9); /* Slightly transparent white */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.27 0.01 258);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.27 0.01 258);
+  --popover: oklch(0.99 0 0 / 0.9);
   --popover-foreground: oklch(0.27 0.01 258);
   --primary: oklch(0.52 0.15 142); /* Medical green #15803d */
-  --primary-foreground: oklch(1 0 0); /* White text on primary */
-  --secondary: oklch(0.75 0.18 85); /* Accent lime #84cc16 */
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.75 0.18 85);
   --secondary-foreground: oklch(0.27 0.01 258);
-  --muted: oklch(0.98 0.02 142); /* Soft background for muted elements */
-  --muted-foreground: oklch(0.27 0.01 258);
-  --accent: oklch(0.75 0.18 85); /* Accent lime for highlights */
+  --muted: oklch(0.98 0.02 142);
+  --muted-foreground: oklch(0.45 0.02 258);
+  --accent: oklch(0.75 0.18 85);
   --accent-foreground: oklch(0.27 0.01 258);
-  --destructive: oklch(0.55 0.22 25); /* Error red #dc2626 */
+  --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.92 0.01 258); /* Light border #e5e7eb */
-  --input: oklch(1 0 0); /* White input background */
-  --ring: oklch(0.52 0.15 142 / 0.5); /* Focus ring with primary color */
-  --chart-1: oklch(0.52 0.15 142); /* Green for positive */
-  --chart-2: oklch(0.55 0.22 25); /* Red for negative */
-  --chart-3: oklch(0.55 0.18 264); /* Blue for neutral */
-  --chart-4: oklch(0.68 0.19 85); /* Yellow for warnings */
-  --chart-5: oklch(0.75 0.18 85); /* Light green for success */
-  --radius: 0.5rem; /* Medical-appropriate rounded corners */
+  --border: oklch(0.92 0.01 258);
+  --input: oklch(1 0 0);
+  --ring: oklch(0.52 0.15 142 / 0.5);
+  --chart-1: oklch(0.52 0.15 142);
+  --chart-2: oklch(0.55 0.22 25);
+  --chart-3: oklch(0.55 0.18 264);
+  --chart-4: oklch(0.68 0.19 85);
+  --chart-5: oklch(0.75 0.18 85);
+  --radius: 0.5rem;
+  --radius-panel: 1.25rem;
+
+  /* Clinical product tokens */
+  --page-wash: oklch(0.98 0.015 150);
+  --panel: oklch(1 0 0);
+  --border-subtle: oklch(0.9 0.03 150);
+  --malignant: oklch(0.48 0.12 15); /* Deep rose/ink — not neon */
+  --malignant-muted: oklch(0.96 0.02 15);
+  --benign: oklch(0.52 0.15 142);
+  --benign-muted: oklch(0.96 0.03 142);
+
   --sidebar: oklch(1 0 0);
   --sidebar-foreground: oklch(0.27 0.01 258);
   --sidebar-primary: oklch(0.52 0.15 142);
@@ -37,30 +48,35 @@
   --sidebar-accent-foreground: oklch(0.27 0.01 258);
   --sidebar-border: oklch(0.92 0.01 258);
   --sidebar-ring: oklch(0.52 0.15 142 / 0.5);
-  --font-dm-sans: "DM Sans", sans-serif;
-  --font-space-grotesk: "Space Grotesk", serif;
 }
 
 .dark {
-  --background: oklch(0.12 0.01 258); /* Dark background */
-  --foreground: oklch(0.95 0.01 142); /* Light text */
-  --card: oklch(0.15 0.01 258); /* Dark cards */
+  --background: oklch(0.12 0.01 258);
+  --foreground: oklch(0.95 0.01 142);
+  --card: oklch(0.15 0.01 258);
   --card-foreground: oklch(0.95 0.01 142);
   --popover: oklch(0.15 0.01 258);
   --popover-foreground: oklch(0.95 0.01 142);
-  --primary: oklch(0.65 0.15 142); /* Lighter medical green for dark mode */
+  --primary: oklch(0.65 0.15 142);
   --primary-foreground: oklch(0.12 0.01 258);
   --secondary: oklch(0.25 0.01 258);
   --secondary-foreground: oklch(0.95 0.01 142);
   --muted: oklch(0.25 0.01 258);
   --muted-foreground: oklch(0.65 0.01 258);
-  --accent: oklch(0.75 0.18 85); /* Keep accent bright in dark mode */
+  --accent: oklch(0.75 0.18 85);
   --accent-foreground: oklch(0.12 0.01 258);
   --destructive: oklch(0.45 0.18 25);
   --destructive-foreground: oklch(0.95 0.01 142);
   --border: oklch(0.25 0.01 258);
   --input: oklch(0.25 0.01 258);
   --ring: oklch(0.65 0.15 142 / 0.5);
+  --page-wash: oklch(0.14 0.015 150);
+  --panel: oklch(0.15 0.01 258);
+  --border-subtle: oklch(0.28 0.03 150);
+  --malignant: oklch(0.7 0.12 15);
+  --malignant-muted: oklch(0.22 0.04 15);
+  --benign: oklch(0.65 0.15 142);
+  --benign-muted: oklch(0.22 0.04 142);
   --chart-1: oklch(0.65 0.15 142);
   --chart-2: oklch(0.65 0.22 25);
   --chart-3: oklch(0.75 0.18 264);
@@ -78,6 +94,8 @@
 
 @theme inline {
   --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-space-grotesk);
+  /* Keep serif alias for existing font-serif usages during migration */
   --font-serif: var(--font-space-grotesk);
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --color-background: var(--background);
@@ -99,6 +117,13 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-page-wash: var(--page-wash);
+  --color-panel: var(--panel);
+  --color-border-subtle: var(--border-subtle);
+  --color-malignant: var(--malignant);
+  --color-malignant-muted: var(--malignant-muted);
+  --color-benign: var(--benign);
+  --color-benign-muted: var(--benign-muted);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -108,6 +133,7 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-panel: var(--radius-panel);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -124,5 +150,36 @@
   }
   body {
     @apply bg-background text-foreground font-sans;
+  }
+}
+
+@layer utilities {
+  .bg-page-wash {
+    background-color: var(--page-wash);
+    background-image: linear-gradient(180deg, oklch(0.985 0.012 150) 0%, oklch(0.97 0.02 150) 52%, oklch(0.985 0.012 150) 100%);
+  }
+  .rounded-panel {
+    border-radius: var(--radius-panel);
+  }
+  .font-display {
+    font-family: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  }
+  .text-malignant {
+    color: var(--malignant);
+  }
+  .text-benign {
+    color: var(--benign);
+  }
+  .bg-malignant-muted {
+    background-color: var(--malignant-muted);
+  }
+  .bg-benign-muted {
+    background-color: var(--benign-muted);
+  }
+  .border-subtle {
+    border-color: var(--border-subtle);
+  }
+  .panel-shadow {
+    box-shadow: 0 20px 70px -45px oklch(0.45 0.12 142 / 0.3);
   }
 }

@@ -8,11 +8,14 @@ frontend/.vercel/
 frontend/.env
 frontend/.env.local
 frontend/.env.*.local
+frontend/tsconfig.tsbuildinfo
 
 # Backend
 backend/__pycache__/
 backend/**/*.pyc
 backend/.pytest_cache/
+backend/.env
+backend/.env.*
 
 # Model
 model/.venv/
@@ -20,6 +23,8 @@ model/.idea/
 model/__pycache__/
 model/**/*.pyc
 model/models.rar
+model/data/
+model/models/
 
 # OS / tooling
 .DS_Store

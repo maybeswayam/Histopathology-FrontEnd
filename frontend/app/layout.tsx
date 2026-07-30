@@ -1,6 +1,7 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Space_Grotesk, DM_Sans } from "next/font/google"
+import { SiteFooter } from "@/components/layout/site-footer"
 import "./globals.css"
 
 const spaceGrotesk = Space_Grotesk({
@@ -16,9 +17,9 @@ const dmSans = DM_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "HistoAI - Cancer Detection",
-  description: "AI-powered histopathology cancer detection system",
-  generator: "v0.app",
+  title: "HistoAI — Histopathology Analysis",
+  description:
+    "Research tool for AI-assisted histopathology image analysis with explainable Grad-CAM visualizations. Not a diagnostic medical device.",
 }
 
 export default function RootLayout({
@@ -28,7 +29,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${dmSans.variable} antialiased`}>
-      <body>{children}</body>
+      <body className="flex min-h-screen flex-col">
+        <div className="flex-1">{children}</div>
+        <SiteFooter />
+      </body>
     </html>
   )
 }

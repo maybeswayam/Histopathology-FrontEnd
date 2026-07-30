@@ -3,15 +3,13 @@
 import type React from "react"
 
 import { createClient } from "@/lib/supabase/client"
+import { AuthShell, AuthCard, AuthField } from "@/components/auth/auth-shell"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { Microscope, AlertCircle } from "lucide-react"
+import { AlertCircle, ArrowRight, Lock, LogIn, Mail } from "lucide-react"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -26,22 +24,15 @@ export default function LoginPage() {
     setIsLoading(true)
     setError(null)
 
-    console.log('Attempting login with email:', email)
-
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
-      
-      console.log('Login response:', { data, error })
-      
+
       if (error) throw error
-      
-      console.log('Login successful, redirecting to dashboard')
       router.push("/dashboard")
     } catch (error: unknown) {
-      console.error('Login error:', error)
       setError(error instanceof Error ? error.message : "An error occurred")
     } finally {
       setIsLoading(false)
@@ -49,81 +40,80 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Link href="/" className="flex items-center space-x-3 w-fit">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-lg flex items-center justify-center">
-              <Microscope className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
-            </div>
-            <h1 className="font-serif text-xl sm:text-2xl font-bold text-foreground">HistoAI</h1>
-          </Link>
-        </div>
-      </header>
+    <AuthShell>
+      <AuthCard
+        icon={LogIn}
+        title="Welcome back"
+        description="Sign in to your research workspace to review cases and run new analyses."
+        footer={
+          <>
+            <p className="text-muted-foreground">
+              Don&apos;t have an account?{" "}
+              <Link href="/auth/sign-up" className="font-medium text-primary hover:underline">
+                Get started
+              </Link>
+            </p>
+            <p className="hidden text-xs text-muted-foreground lg:block">
+              <Link href="/guide" className="underline-offset-4 hover:underline">
+                New here? Read the guide
+              </Link>
+            </p>
+          </>
+        }
+      >
+        <form onSubmit={handleLogin} className="space-y-5">
+          <AuthField
+            id="email"
+            label="Email"
+            icon={Mail}
+            type="email"
+            placeholder="you@example.com"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={isLoading}
+          />
 
-      {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="w-full max-w-sm">
-          <Card>
-            <CardHeader className="space-y-2">
-              <CardTitle className="text-2xl">Login</CardTitle>
-              <CardDescription>Enter your credentials to access your account</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleLogin} className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading}
-                  />
-                </div>
+          <AuthField
+            id="password"
+            label="Password"
+            icon={Lock}
+            isPassword
+            placeholder="••••••••"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={isLoading}
+          />
 
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading}
-                  />
-                </div>
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
-
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Logging in..." : "Login"}
-                </Button>
-              </form>
-
-              <div className="mt-6 text-center text-sm">
-                <span className="text-muted-foreground">Don't have an account? </span>
-                <Link href="/auth/sign-up" className="text-primary hover:underline font-medium">
-                  Sign up
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-
-          <p className="text-center text-xs text-muted-foreground mt-6">
-            By logging in, you agree to our Terms of Service and Privacy Policy
-          </p>
-        </div>
-      </main>
-    </div>
+          <Button
+            type="submit"
+            className="group h-11 w-full rounded-lg font-medium shadow-[0_14px_32px_-18px_oklch(0.45_0.12_142_/_0.6)] transition-all hover:shadow-[0_18px_40px_-18px_oklch(0.45_0.12_142_/_0.7)]"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              "Signing in…"
+            ) : (
+              <>
+                Sign in
+                <ArrowRight
+                  className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                  aria-hidden
+                />
+              </>
+            )}
+          </Button>
+        </form>
+      </AuthCard>
+    </AuthShell>
   )
 }

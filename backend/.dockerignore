@@ -1,0 +1,17 @@
+# Secrets — never bake into images (compose mounts real env at runtime)
+.env
+.env.*
+
+# Python artifacts
+__pycache__
+**/*.pyc
+.pytest_cache
+
+# Tests (not needed in production image)
+tests/
+pytest.ini
+
+# VCS / editor
+.git
+.gitignore
+.vscode
